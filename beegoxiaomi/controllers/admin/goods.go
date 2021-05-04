@@ -3,6 +3,7 @@ package admin
 import (
 	"beegoxiaomi/models"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,10 +18,35 @@ type GoodsController struct {
 }
 
 func (c *GoodsController) Get() {
-	goods := []models.Goods{}
-	models.DB.Find(&goods)
-	c.Data["goodsList"] = goods
+	//当前页
+	page, _ := c.GetInt("page")
+	if page == 0 {
+		page = 1
+	}
+	//每一页显示的数量
+	pageSize := 5
+
+	//实现搜索功能
+	keyword := c.GetString("keyword")
+	where := "1=1"
+	if len(keyword) > 0 {
+		where += " AND title like \"%" + keyword + "%\""
+	}
+
+	//查询数据
+	goodsList := []models.Goods{}
+	models.DB.Where(where).Offset((page - 1) * pageSize).Limit(pageSize).Find(&goodsList)
+
+	//查询goods表里面的数量
+	var count int64
+	models.DB.Where(where).Table("goods").Count(&count)
+
+	c.Data["goodsList"] = goodsList
+	c.Data["totalPages"] = math.Ceil(float64(count) / float64(pageSize))
+	c.Data["page"] = page
+	c.Data["keyword"] = keyword
 	c.TplName = "admin/goods/index.html"
+
 }
 
 func (c *GoodsController) Add() {

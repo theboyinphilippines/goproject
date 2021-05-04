@@ -89,6 +89,10 @@ table .th{
     padding:5px 0px
 }
 
+.input-form li input[type=text]{
+    width: 400px;
+}
+
 input[type=file]{
  	display: inline !important;
 
